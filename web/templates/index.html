@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IPC Messenger · Universidad Simón Bolívar</title>
+  <meta name="description" content="Simulador web de comunicación entre procesos: colas de mensajes, tuberías y memoria compartida. Proyecto 9 de Sistemas Operativos · Ingeniería de Sistemas, Universidad Simón Bolívar.">
+  <link rel="icon" type="image/png" href="/static/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/estilos.css">
+</head>
+<body>
+
+<!-- ============================ ENCABEZADO ============================ -->
+<header class="encabezado">
+  <div class="franja-institucional">
+    <span data-i18n="franja.programa">Facultad de Ingenierías · Programa de Ingeniería de Sistemas</span>
+    <span class="solo-ancho"><span data-i18n="curso.materia">{{ asignatura }}</span> · <span data-i18n="curso.titulo">Ing.</span> {{ docente }} · 2026-2</span>
+  </div>
+  <div class="barra-principal">
+    <a href="#inicio" class="marca" data-ir="inicio">
+      <img src="/static/img/logo_usb.png" alt="Universidad Simón Bolívar" class="logo">
+      <span class="separador-marca" aria-hidden="true"></span>
+      <img src="/static/img/logo_sistemas_verde.png" alt="Ingeniería de Sistemas" class="logo-programa">
+      <span class="nombre-app">
+        <strong>IPC Messenger</strong>
+        <small data-i18n="app.sub">Comunicación entre procesos</small>
+      </span>
+    </a>
+    <nav class="navegacion" id="navegacion">
+      <a href="#inicio" data-ir="inicio" data-i18n="nav.inicio">Inicio</a>
+      <a href="#simulador" data-ir="simulador" data-i18n="nav.simulador">Simulador</a>
+      <a href="#experimento" data-ir="experimento" data-i18n="nav.experimento">Experimento</a>
+      <a href="#real" data-ir="real" data-i18n="nav.real">IPC real</a>
+      <a href="#conceptos" data-ir="conceptos" data-i18n="nav.conceptos">Conceptos</a>
+    </nav>
+    <div class="selector-idioma" role="group" title="Cambiar idioma / Change language" data-i18n-title="t.idioma">
+      <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+      <button type="button" data-idioma="en" aria-pressed="false">EN</button>
+    </div>
+    <button class="menu-movil" aria-label="Abrir menú" title="Abrir menú" data-i18n-title="t.menu" id="btnMenu">☰</button>
+  </div>
+</header>
+
+<main>
+<!-- ============================== INICIO ============================== -->
+<section class="vista" id="vista-inicio">
+  <div class="heroe">
+    <div class="heroe-contenido">
+      <div class="heroe-programa">
+        <img src="/static/img/logo_sistemas_blanco.png" alt="">
+        <span data-i18n="heroe.programa">Ingeniería de Sistemas</span>
+      </div>
+      <span class="etiqueta-heroe" data-i18n="heroe.etiqueta">Software académico · Sistemas Operativos</span>
+      <h1>IPC Messenger</h1>
+      <p class="heroe-lema" data-i18n="heroe.lema">Visualiza cómo los procesos intercambian mensajes mediante <b>colas</b>, <b>tuberías</b> y <b>memoria compartida</b>; provoca fallos, detecta bloqueos y compara mecanismos con la misma carga de trabajo.</p>
+      <div class="heroe-acciones">
+        <a href="#simulador" data-ir="simulador" class="boton boton-claro" data-i18n="heroe.btnSim">Abrir el simulador →</a>
+        <a href="#experimento" data-ir="experimento" class="boton boton-contorno-claro" data-i18n="heroe.btnExp">Ver el experimento</a>
+      </div>
+      <p class="heroe-aviso" data-i18n="heroe.aviso">Los tiempos del simulador son <b>ticks lógicos</b>, no mediciones reales. La sección «IPC real» sí usa procesos del sistema operativo.</p>
+    </div>
+    <div class="heroe-ilustracion" aria-hidden="true">
+      <svg viewBox="0 0 360 260">
+        <defs>
+          <marker id="hf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#fff"/></marker>
+        </defs>
+        <g class="h-proc"><rect x="10" y="40" width="88" height="54" rx="10"/><text x="54" y="72">P1</text></g>
+        <g class="h-proc"><rect x="10" y="160" width="88" height="54" rx="10"/><text x="54" y="192">P2</text></g>
+        <g class="h-proc"><rect x="262" y="100" width="88" height="54" rx="10"/><text x="306" y="132">P3</text></g>
+        <rect x="128" y="96" width="106" height="62" rx="10" class="h-canal"/>
+        <rect x="138" y="114" width="20" height="26" rx="4" class="h-celda"/>
+        <rect x="163" y="114" width="20" height="26" rx="4" class="h-celda"/>
+        <rect x="188" y="114" width="20" height="26" rx="4" class="h-celda h-vacia"/>
+        <rect x="213" y="114" width="12" height="26" rx="4" class="h-celda h-vacia"/>
+        <path id="h1" d="M98,67 C120,67 112,118 128,120" class="h-flecha" marker-end="url(#hf)"/>
+        <path id="h2" d="M98,187 C120,187 112,138 128,136" class="h-flecha" marker-end="url(#hf)"/>
+        <path id="h3" d="M234,127 L262,127" class="h-flecha" marker-end="url(#hf)"/>
+        <circle r="6" class="h-sobre"><animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#h1"/></animateMotion></circle>
+        <circle r="6" class="h-sobre"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#h2"/></animateMotion></circle>
+        <circle r="6" class="h-sobre"><animateMotion dur="1.2s" begin="0.6s" repeatCount="indefinite"><mpath href="#h3"/></animateMotion></circle>
+      </svg>
+    </div>
+  </div>
+
+  <div class="contenedor">
+    <h2 class="titulo-seccion" data-i18n="inicio.titulo">¿Qué puedes hacer?</h2>
+    <div class="rejilla-tarjetas">
+      <article class="tarjeta-info">
+        <div class="icono-info">📨</div>
+        <h3 data-i18n="card.cola.t">Cola de mensajes</h3>
+        <p data-i18n="card.cola.p">Mensajes discretos en orden FIFO o por prioridad. Observa emisores bloqueados cuando la cola se llena o el error <code>EAGAIN</code> en modo no bloqueante.</p>
+      </article>
+      <article class="tarjeta-info">
+        <div class="icono-info">🔗</div>
+        <h3 data-i18n="card.tub.t">Tubería (pipe)</h3>
+        <p data-i18n="card.tub.p">Flujo de bytes con lecturas parciales, fin de flujo (<code>EOF</code>) y tubería rota (<code>EPIPE</code> / <code>SIGPIPE</code>) cuando el lector desaparece.</p>
+      </article>
+      <article class="tarjeta-info">
+        <div class="icono-info">🧠</div>
+        <h3 data-i18n="card.mem.t">Memoria compartida</h3>
+        <p data-i18n="card.mem.p">Búfer circular productor–consumidor con y sin <b>mutex + semáforos</b>: condiciones de carrera, espera activa y mutex huérfano.</p>
+      </article>
+      <article class="tarjeta-info">
+        <div class="icono-info">💥</div>
+        <h3 data-i18n="card.fallos.t">Fallos y bloqueos</h3>
+        <p data-i18n="card.fallos.p">Haz caer, congelar o ralentizar procesos; usa <i>timeouts</i> y deja que el sistema diagnostique estancamientos e interbloqueos.</p>
+      </article>
+    </div>
+
+    <div class="franja-datos">
+      <div><strong>3</strong><span data-i18n="dato.mecanismos">mecanismos IPC</span></div>
+      <div><strong>15</strong><span data-i18n="dato.escenarios">escenarios reproducibles</span></div>
+      <div><strong>8</strong><span data-i18n="dato.estados">estados de proceso</span></div>
+      <div><strong>34</strong><span data-i18n="dato.pruebas">pruebas automatizadas</span></div>
+    </div>
+
+    <section class="creditos" aria-labelledby="titulo-creditos">
+      <div class="creditos-cabecera">
+        <div class="creditos-logos">
+          <img src="/static/img/logo_usb.png" alt="Universidad Simón Bolívar">
+          <img src="/static/img/logo_sistemas_verde.png" alt="Ingeniería de Sistemas" class="logo-programa-grande">
+        </div>
+        <div>
+          <span class="etiqueta" data-i18n="creditos.etiqueta">Software desarrollado por</span>
+          <h2 id="titulo-creditos" data-i18n="creditos.titulo">Equipo de desarrollo</h2>
+          <p data-i18n="creditos.sub">Estudiantes de 6.º semestre de Ingeniería de Sistemas · Universidad Simón Bolívar, sede Cúcuta</p>
+        </div>
+      </div>
+      <div class="integrantes">
+        {% for nombre in integrantes %}
+        <div class="integrante">
+          {% set partes = nombre.split() %}
+          <div class="avatar">{{ partes[0][0] }}{{ (partes[2] if partes|length > 3 else partes[1])[0] }}</div>
+          <div>
+            <strong>{{ nombre }}</strong>
+            <span data-i18n="integrante.rol">Ingeniería de Sistemas · 6.º semestre</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="ficha-curso">
+        <div><span data-i18n="curso.asignatura">Asignatura</span><strong data-i18n="curso.materia">{{ asignatura }}</strong></div>
+        <div><span data-i18n="curso.docente">Docente</span><strong><span data-i18n="curso.titulo">Ing.</span> {{ docente }}</strong></div>
+        <div><span data-i18n="curso.periodo">Periodo académico</span><strong>2026-2</strong></div>
+        <div><span data-i18n="curso.proyectoLbl">Proyecto</span><strong data-i18n="curso.proyecto">Proyecto 9 · IPC Messenger</strong></div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- ============================ SIMULADOR ============================= -->
+<section class="vista" id="vista-simulador" hidden>
+  <div class="aviso-simulacion" data-i18n="sim.aviso">⚠ <b>Simulación de tiempo discreto:</b> los tiempos se miden en <b>ticks lógicos</b>, no son mediciones reales del sistema operativo.</div>
+  <div class="disposicion-simulador">
+
+    <!-- Panel de configuración -->
+    <aside class="panel panel-config">
+      <h3 class="panel-titulo" data-i18n="sim.escenario">Escenario</h3>
+      <select id="selEscenario" class="control"></select>
+      <div id="descEscenario" class="descripcion-escenario"></div>
+
+      <form id="formConfig" autocomplete="off">
+        <h3 class="panel-titulo" data-i18n="sim.config">Configuración</h3>
+        <label class="campo campo-completo"><span data-i18n="f.mecanismo">Mecanismo IPC</span>
+          <select name="mecanismo" class="control">
+            <option value="cola" data-i18n="opt.cola">Cola de mensajes</option>
+            <option value="tuberia" data-i18n="opt.tuberia">Tubería (pipe)</option>
+            <option value="memoria" data-i18n="opt.memoria">Memoria compartida</option>
+          </select>
+        </label>
+        <div class="rejilla-campos">
+          <label class="campo" title="Cola: nº de mensajes · Tubería: bytes · Memoria: ranuras" data-i18n-title="t.capacidad"><span data-i18n="f.capacidad">Capacidad</span> <input type="number" name="capacidad" min="1" max="4096" class="control"></label>
+          <label class="campo"><span data-i18n="f.emisores">Emisores</span> <input type="number" name="n_emisores" min="1" max="8" class="control"></label>
+          <label class="campo"><span data-i18n="f.receptores">Receptores</span> <input type="number" name="n_receptores" min="1" max="8" class="control"></label>
+          <label class="campo"><span data-i18n="f.mensajes">Mensajes / emisor</span> <input type="number" name="mensajes_por_emisor" min="1" max="200" class="control"></label>
+          <label class="campo" title="Ticks de cómputo entre dos envíos" data-i18n-title="t.intervalo"><span data-i18n="f.intervalo">Ticks entre envíos</span> <input type="number" name="intervalo_emisor" min="1" max="50" class="control"></label>
+          <label class="campo" title="Ticks que tarda el receptor en procesar cada mensaje" data-i18n-title="t.trec"><span data-i18n="f.trec">Ticks receptor</span> <input type="number" name="tiempo_receptor" min="1" max="50" class="control"></label>
+          <label class="campo" title="0 = espera indefinida" data-i18n-title="t.timeout"><span data-i18n="f.timeout">Timeout</span> <input type="number" name="timeout" min="0" max="500" class="control"></label>
+          <label class="campo" title="Sólo tubería" data-i18n-title="t.lectura"><span data-i18n="f.lectura">Bytes por read()</span> <input type="number" name="tam_lectura" min="1" max="4096" class="control"></label>
+          <label class="campo" title="Variación aleatoria reproducible en los cómputos" data-i18n-title="t.variacion"><span data-i18n="f.variacion">Variación ±ticks</span> <input type="number" name="variacion" min="0" max="10" class="control"></label>
+          <label class="campo"><span data-i18n="f.semilla">Semilla</span> <input type="number" name="semilla" min="0" max="999999" class="control"></label>
+        </div>
+        <div class="interruptores">
+          <label class="interruptor"><input type="checkbox" name="bloqueante"><span></span><em data-i18n="f.bloqueante">Operaciones bloqueantes</em></label>
+          <label class="interruptor"><input type="checkbox" name="sincronizada"><span></span><em data-i18n="f.sync">Memoria: mutex + semáforos</em></label>
+          <label class="interruptor"><input type="checkbox" name="por_prioridad"><span></span><em data-i18n="f.prio">Cola: prioridad aleatoria</em></label>
+        </div>
+        <button type="submit" class="boton boton-primario boton-bloque" data-i18n="f.aplicar">⟲ Aplicar y reiniciar</button>
+      </form>
+    </aside>
+
+    <!-- Zona central -->
+    <div class="zona-central">
+      <div class="panel barra-herramientas">
+        <div class="grupo-botones">
+          <button class="boton boton-primario" id="btnEjecutar">▶ Ejecutar</button>
+          <button class="boton boton-secundario" id="btnPaso" data-i18n="b.paso">⏭ Paso</button>
+          <button class="boton boton-secundario" id="btnFinal" data-i18n="b.final">⏩ Al final</button>
+        </div>
+        <label class="velocidad"><span data-i18n="b.velocidad">Velocidad</span> <input type="range" id="rngVelocidad" min="1" max="10" value="5"></label>
+        <div class="indicador-tick"><span data-i18n="b.tick">Tick</span><strong id="lblTick">0</strong></div>
+        <span class="insignia" id="lblEstado">Listo</span>
+      </div>
+
+      <div class="panel barra-fallos">
+        <span class="etiqueta-fallos" data-i18n="b.falloEn">Inyectar fallo en</span>
+        <select id="selProceso" class="control control-corto" title="También puedes hacer clic sobre un proceso en el diagrama" data-i18n-title="t.proceso"></select>
+        <button class="boton boton-fallo" data-fallo="caer" data-i18n="b.caer">💥 Caer</button>
+        <button class="boton boton-fallo" data-fallo="no_responder" data-i18n="b.congelar">🧊 Congelar</button>
+        <button class="boton boton-fallo" data-fallo="lento" data-i18n="b.lento">🐢 Lento</button>
+        <button class="boton boton-fallo recuperar" data-fallo="recuperar" data-i18n="b.recuperar">✅ Recuperar</button>
+      </div>
+
+      <div class="panel lienzo">
+        <div id="diagnostico" class="diagnostico" hidden></div>
+        <svg id="diagrama" role="img" aria-label="IPC"></svg>
+        <div class="leyenda" id="leyenda"></div>
+      </div>
+
+      <div class="panel grafica-panel">
+        <div class="panel-titulo-linea"><h3 class="panel-titulo" data-i18n="sim.grafica">Ocupación del canal por tick</h3><span class="pista" id="leyendaGrafica"></span></div>
+        <svg id="graficaOcupacion" viewBox="0 0 1000 150" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+
+    <!-- Panel derecho -->
+    <aside class="panel panel-lateral">
+      <div class="panel-titulo-linea">
+        <h3 class="panel-titulo" data-i18n="sim.metricas">Métricas</h3>
+        <div class="exportar">
+          <button class="boton boton-secundario boton-mini" id="btnCsv" title="Exportar el registro de eventos (evidencia)" data-i18n-title="t.csv">⬇ CSV</button>
+          <button class="boton boton-secundario boton-mini" id="btnJson" title="Exportar métricas y configuración" data-i18n-title="t.json">⬇ JSON</button>
+        </div>
+      </div>
+      <div id="metricas" class="metricas"></div>
+      <div class="panel-titulo-linea">
+        <h3 class="panel-titulo" data-i18n="sim.registro">Registro de eventos</h3>
+        <label class="filtro"><input type="checkbox" id="chkSoloAlertas"> <span data-i18n="sim.soloAlertas">sólo alertas</span></label>
+      </div>
+      <ol id="registro" class="registro"></ol>
+    </aside>
+  </div>
+</section>
+
+<!-- =========================== EXPERIMENTO ============================ -->
+<section class="vista" id="vista-experimento" hidden>
+  <div class="contenedor">
+    <div class="encabezado-vista">
+      <span class="etiqueta" data-i18n="exp.etiqueta">Reto de experimentación</span>
+      <h2 data-i18n="exp.titulo">Misma carga, cuatro mecanismos</h2>
+      <p data-i18n="exp.desc">Se ejecuta la <b>misma</b> configuración de emisores y receptores sobre cola de mensajes, tubería y memoria compartida (con y sin sincronización). Los resultados están en ticks simulados.</p>
+    </div>
+    <div class="disposicion-experimento">
+      <form class="panel" id="formExperimento" autocomplete="off">
+        <h3 class="panel-titulo" data-i18n="exp.carga">Carga de trabajo común</h3>
+        <div class="rejilla-campos">
+          <label class="campo"><span data-i18n="f.emisores">Emisores</span> <input type="number" name="n_emisores" value="3" min="1" max="8" class="control"></label>
+          <label class="campo"><span data-i18n="f.receptores">Receptores</span> <input type="number" name="n_receptores" value="2" min="1" max="8" class="control"></label>
+          <label class="campo"><span data-i18n="f.mensajes">Mensajes / emisor</span> <input type="number" name="mensajes_por_emisor" value="6" min="1" max="200" class="control"></label>
+          <label class="campo" title="En la tubería se convierte a bytes (≈18 B por mensaje)" data-i18n-title="t.ecap"><span data-i18n="e.capacidad">Capacidad (msg)</span> <input type="number" name="capacidad" value="4" min="1" max="200" class="control"></label>
+          <label class="campo"><span data-i18n="f.intervalo">Ticks entre envíos</span> <input type="number" name="intervalo_emisor" value="1" min="1" max="50" class="control"></label>
+          <label class="campo"><span data-i18n="f.trec">Ticks receptor</span> <input type="number" name="tiempo_receptor" value="2" min="1" max="50" class="control"></label>
+          <label class="campo"><span data-i18n="f.timeout">Timeout</span> <input type="number" name="timeout" value="0" min="0" max="500" class="control"></label>
+          <label class="campo"><span data-i18n="f.semilla">Semilla</span> <input type="number" name="semilla" value="42" min="0" max="999999" class="control"></label>
+          <label class="campo campo-completo"><span data-i18n="e.fallo">Tick en que cae R1</span> <small data-i18n="e.falloSub">(0 = sin fallo)</small><input type="number" name="fallo_tick" value="0" min="0" max="500" class="control"></label>
+        </div>
+        <button class="boton boton-primario boton-bloque" type="submit" data-i18n="exp.ejecutar">▶ Ejecutar comparación</button>
+        <button class="boton boton-secundario boton-bloque" type="button" id="btnExpCsv" disabled data-i18n="exp.csv">⬇ Exportar tabla CSV</button>
+      </form>
+      <div class="resultados-experimento">
+        <div class="panel" id="expVacio"><p class="vacio" data-i18n="exp.vacio">Configura la carga y pulsa <b>Ejecutar comparación</b>.</p></div>
+        <div id="expResultados" hidden>
+          <div class="tarjetas-resumen" id="expResumen"></div>
+          <div class="panel tabla-desplazable"><table class="tabla" id="tablaExperimento"></table></div>
+          <div class="panel"><h3 class="panel-titulo" data-i18n="exp.g1">Entregados vs. perdidos</h3><div id="graficaEntregas"></div></div>
+          <div class="panel"><h3 class="panel-titulo" data-i18n="exp.g2">Latencia promedio y ticks totales</h3><div id="graficaLatencia"></div></div>
+          <div class="panel conclusiones"><h3 class="panel-titulo" data-i18n="exp.conclusiones">Conclusiones automáticas</h3><ul id="listaConclusiones"></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ IPC REAL ============================== -->
+<section class="vista" id="vista-real" hidden>
+  <div class="contenedor">
+    <div class="encabezado-vista">
+      <span class="etiqueta" data-i18n="real.etiqueta">Procesos reales del sistema operativo</span>
+      <h2 data-i18n="real.titulo">IPC real con <code>multiprocessing</code></h2>
+      <p data-i18n="real.desc">A diferencia del simulador, aquí el servidor <b>crea procesos reales</b> y mide tiempos reales del equipo donde se ejecuta (cambian en cada ejecución). Además se demuestran dos fallos reales: un lector de tubería que muere (<code>BrokenPipeError</code>) y un receptor de cola que muere (sólo se detecta por <i>timeout</i>).</p>
+    </div>
+    <form class="panel fila-formulario" id="formReal">
+      <label class="campo"><span data-i18n="real.n">Mensajes a enviar (32 B c/u)</span>
+        <input type="number" name="n" value="20000" min="100" max="200000" step="100" class="control">
+      </label>
+      <button class="boton boton-primario" type="submit" id="btnReal" data-i18n="real.ejecutar">▶ Ejecutar IPC real</button>
+      <span class="pista" id="estadoReal"></span>
+    </form>
+    <div id="realResultados" hidden>
+      <div class="dos-columnas">
+        <div class="panel"><h3 class="panel-titulo" data-i18n="real.rend">Rendimiento medido</h3><div id="graficaReal"></div></div>
+        <div class="panel"><h3 class="panel-titulo" data-i18n="real.salida">Salida del proceso padre</h3><pre class="consola" id="consolaReal"></pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CONCEPTOS ============================= -->
+<section class="vista" id="vista-conceptos" hidden>
+  <div class="contenedor">
+    <div class="encabezado-vista">
+      <span class="etiqueta" data-i18n="con.etiqueta">Fundamentos</span>
+      <h2 data-i18n="con.titulo">Conceptos de Sistemas Operativos representados</h2>
+      <p data-i18n="con.desc">La comunicación entre procesos (IPC) agrupa los mecanismos con los que procesos de memoria aislada intercambian datos y se coordinan. Hay dos familias: <b>paso de mensajes</b> (el núcleo copia los datos) y <b>memoria compartida</b> (los procesos acceden a la misma región y deben sincronizarse).</p>
+    </div>
+    <div class="rejilla-conceptos">
+      <article class="panel concepto">
+        <h3 data-i18n="con.cola.t">📨 Cola de mensajes</h3>
+        <p class="sub">System V <code>msgsnd/msgrcv</code> · POSIX <code>mq_send/mq_receive</code></p>
+        <ul data-i18n="con.cola.li">
+          <li>Conserva los límites de cada mensaje y su orden FIFO (opcionalmente por prioridad).</li>
+          <li>Capacidad limitada: con la cola llena el emisor se <b>bloquea</b> o recibe <code>EAGAIN</code>.</li>
+          <li>Admite varios emisores y receptores sin corromper mensajes.</li>
+          <li>Si el receptor muere, la cola no avisa: se llena.</li>
+        </ul>
+      </article>
+      <article class="panel concepto">
+        <h3 data-i18n="con.tub.t">🔗 Tubería</h3>
+        <p class="sub" data-i18n="con.tub.sub"><code>pipe()</code> · flujo de bytes unidireccional</p>
+        <ul data-i18n="con.tub.li">
+          <li>No existen «mensajes»: el lector debe delimitarlos (aquí con <code>\n</code>).</li>
+          <li><code>read()</code> puede devolver menos bytes de los pedidos.</li>
+          <li>Escribir sin lectores → <code>EPIPE</code> + <code>SIGPIPE</code>. Leer sin escritores → <code>EOF</code>.</li>
+          <li>Con varios lectores las lecturas parciales se intercalan.</li>
+        </ul>
+      </article>
+      <article class="panel concepto">
+        <h3 data-i18n="con.mem.t">🧠 Memoria compartida</h3>
+        <p class="sub" data-i18n="con.mem.sub"><code>shmget</code> / <code>mmap</code> + sincronización</p>
+        <ul data-i18n="con.mem.li">
+          <li>Sin copia del núcleo, pero <b>sin sincronización propia</b>.</li>
+          <li>Escribir no es atómico: leer índice → escribir ranura → actualizar contador.</li>
+          <li>Semáforos <code>vacíos</code>/<code>llenos</code> + <code>mutex</code> resuelven productor–consumidor.</li>
+          <li>Si un proceso muere con el mutex tomado, nadie más entra.</li>
+        </ul>
+      </article>
+      <article class="panel concepto">
+        <h3 data-i18n="con.est.t">🔄 Estados de proceso</h3>
+        <div class="flujo-estados" id="flujoEstados"></div>
+        <ul data-i18n="con.est.li">
+          <li><b>Bloqueado</b>: duerme esperando un recurso (no usa CPU).</li>
+          <li><b>Espera activa</b>: sondea el recurso consumiendo CPU.</li>
+          <li><b>No responde</b> (recuperable) y <b>Caído</b> (permanente) son fallos inyectados.</li>
+        </ul>
+      </article>
+      <article class="panel concepto">
+        <h3 data-i18n="con.fal.t">⛔ Fallos, timeouts e interbloqueo</h3>
+        <ul data-i18n="con.fal.li">
+          <li>Un receptor que no responde deja a los emisores bloqueados indefinidamente.</li>
+          <li>Un <b>timeout</b> permite detectar la falta de respuesta y descartar el mensaje.</li>
+          <li>Interbloqueo: A espera recibir de B y B de A (espera circular). Se construye un grafo de espera y se busca un ciclo.</li>
+        </ul>
+      </article>
+      <article class="panel concepto destacado">
+        <h3 data-i18n="con.simp.t">📐 Simplificaciones del modelo</h3>
+        <ul data-i18n="con.simp.li">
+          <li>Simulación de tiempo discreto: los tiempos son <b>ticks</b>, no mediciones reales.</li>
+          <li>Cada proceso vivo da como máximo un paso por tick; no hay planificador de CPU.</li>
+          <li>El orden de atención rota cada tick y es determinista con la misma semilla.</li>
+          <li>Los procesos bloqueados reintentan en cada tick.</li>
+          <li>No se modelan claves IPC, permisos ni límites del núcleo.</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============================== PIE ================================= -->
+<footer class="pie">
+  <div class="pie-contenido">
+    <div class="pie-logos">
+      <img src="/static/img/logo_usb_blanco.png" alt="Universidad Simón Bolívar" class="pie-logo">
+      <img src="/static/img/logo_sistemas_blanco.png" alt="Ingeniería de Sistemas" class="pie-logo-programa">
+    </div>
+    <div class="pie-creditos">
+      <span class="pie-etiqueta" data-i18n="pie.etiqueta">Software desarrollado por:</span>
+      <ul>
+        {% for nombre in integrantes %}<li>{{ nombre }}</li>{% endfor %}
+      </ul>
+      <p data-i18n="pie.estudiantes">Estudiantes de 6.º semestre de Ingeniería de Sistemas · Universidad Simón Bolívar, sede Cúcuta</p>
+    </div>
+    <div class="pie-proyecto">
+      <strong>IPC Messenger</strong>
+      <span data-i18n="pie.proyecto">Proyecto 9 · Sistemas Operativos</span>
+      <span><span data-i18n="curso.docente">Docente</span>: <span data-i18n="curso.titulo">Ing.</span> {{ docente }}</span>
+      <span data-i18n="pie.periodo">Periodo académico 2026-2</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

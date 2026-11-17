@@ -1,0 +1,10 @@
+# Archivos que no se suben a Vercel
+.venv
+venv
+__pycache__
+*.pyc
+docs
+gui
+tests
+iniciar_windows.bat
+iniciar.sh
