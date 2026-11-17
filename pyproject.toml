@@ -1,0 +1,10 @@
+[project]
+name = "ipc-messenger"
+version = "1.0.0"
+description = "IPC Messenger - Proyecto 9 Sistemas Operativos"
+requires-python = ">=3.10"
+dependencies = ["flask>=3.0"]
+
+# Vercel: la aplicacion Flask "app" esta en web/servidor.py
+[tool.vercel]
+entrypoint = "web.servidor:app"
